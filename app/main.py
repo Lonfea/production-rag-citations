@@ -3,6 +3,7 @@ from tempfile import NamedTemporaryFile
 from typing import Annotated
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
@@ -37,6 +38,10 @@ class AskResponse(BaseModel):
     grounded: bool
     sources: list[Source]
 
+
+@app.get("/", include_in_schema=False)
+def ui() -> FileResponse:
+    return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 @app.get("/health")
 def health() -> dict:

@@ -1,0 +1,30 @@
+{
+  "dataset": "FinanceBench open-source subset (patronus-ai/financebench)",
+  "questions": 150,
+  "index": {
+    "documents": 84,
+    "pages": 11948,
+    "chunks": 43623,
+    "ingest_seconds": 747.7
+  },
+  "chunking": "1,200 characters with 200 overlap, within pages",
+  "first_stage_candidates": 20,
+  "embedding_model": null,
+  "rerank_model": null,
+  "results": {
+    "lexical": {
+      "page_hit@1": 0.073,
+      "page_hit@3": 0.107,
+      "page_hit@5": 0.113,
+      "page_hit@10": 0.153,
+      "doc_hit@5": 0.493,
+      "mrr@10": 0.096,
+      "page_hit@5_by_question_type": {
+        "domain-relevant": 0.08,
+        "metrics-generated": 0.02,
+        "novel-generated": 0.24
+      },
+      "median_latency_ms": 107.9
+    }
+  }
+}

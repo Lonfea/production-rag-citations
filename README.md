@@ -90,6 +90,35 @@ This repository is designed to demonstrate more than a chatbot: **retrieval arch
 
 Cross-encoders are intentionally used after first-stage retrieval because they are usually more accurate but more computationally expensive than bi-encoder retrieval.
 
+## Retrieval benchmark
+
+`scripts/benchmark_financebench.py` measures page-level retrieval on [FinanceBench](https://github.com/patronus-ai/financebench): 150 questions over 84 public SEC filings, each labelled with the page that holds the evidence. All filings go into one shared index (11,948 pages, 43,623 chunks), so the retriever has to find the right company and year as well as the right page. A question counts as a hit at *k* if any of the top *k* chunks comes from an evidence page.
+
+| Mode | Page hit@1 | Page hit@5 | Page hit@10 | Filing hit@5 | MRR@10 |
+|---|---:|---:|---:|---:|---:|
+| Lexical (FTS5 / BM25) | 0.07 | 0.11 | 0.15 | 0.49 | 0.10 |
+| Semantic | not yet run | | | | |
+| Hybrid (RRF) | not yet run | | | | |
+| Hybrid + cross-encoder rerank | not yet run | | | | |
+
+Only the lexical row has been measured. The environment used to write this could not download the embedding and reranking models from Hugging Face, so the remaining rows need a run on a machine with internet access:
+
+```bash
+python scripts/benchmark_financebench.py \
+  --modes lexical,semantic,hybrid,hybrid+rerank \
+  --output benchmarks/financebench.json
+```
+
+The first run downloads about 160 MB of filings. Text extraction and indexing took about 12 minutes here without embeddings; computing embeddings for 43,623 chunks adds more time on a CPU.
+
+What the lexical baseline shows:
+
+- **Keyword search alone is not enough for financial filings.** The evidence page is in the top 5 for 11% of questions, and the right filing for 49%. The 84 filings share most of their vocabulary, so terms like "revenue" or "operating income" match every document.
+- **Metric questions fail on vocabulary mismatch** (2% page hit@5). A question about "capital expenditure" has to find a cash-flow line called "Purchases of property, plant and equipment". This is the gap the semantic arm and the reranker are meant to close, and the full run will show whether they do.
+- **Removing stopwords did not help.** Filtering words like "what" and "the" from the query moved page hit@5 from 0.11 to 0.13 but lowered filing hit@5. That's within noise for 150 questions, so the query builder was left unchanged.
+
+The benchmark also found a bug: some filings are AES-encrypted (readable without a password), and pypdf needs the `cryptography` package to open them. Uploading one used to return a 500 error. `pypdf[crypto]` is now a dependency, and unreadable PDFs return 422.
+
 ## Grounding contract
 
 The model receives evidence in this form:
@@ -159,7 +188,7 @@ pytest
 ruff check .
 ```
 
-The unit tests cover deterministic engineering logic such as RRF fusion and citation validation without requiring an LLM call.
+28 tests cover the full ingest → search → answer → grounding path against a real SQLite FTS5 and sqlite-vec index. They use small deterministic stand-ins for the embedding model, reranker and LLM (`tests/fakes.py`), so they run in about a second with no downloads or API keys. They include failure cases: unreadable uploads, a model crash during re-ingestion (the previous version must survive), citations to pages that were never retrieved, and an unreachable model backend (503).
 
 ## Known limitations
 
@@ -167,11 +196,14 @@ The unit tests cover deterministic engineering logic such as RRF fusion and cita
 - Text extraction does not include OCR for scanned PDFs.
 - The local cross-encoder adds latency on CPU; production deployments should batch or accelerate reranking.
 - This version is single-tenant and intentionally leaves authentication to a later portfolio system.
+- **Citations identify pages, not documents.** The grounding guard checks that `[p.N]` matches a retrieved page number. With several documents indexed, page 3 of one filing and page 3 of another are indistinguishable, so a citation can pass the guard while pointing at the wrong document.
+- **Chunks split at fixed character counts**, sometimes mid-sentence or mid-table. Financial statements extract as flattened text, which makes table lookups harder for both retrievers.
 
 ## Next engineering upgrades
 
 - tracing and request metrics with OpenTelemetry;
-- automated RAG eval suite and regression gate;
+- run the full FinanceBench ablation and report semantic, hybrid and reranked retrieval;
+- source-aware citations (`[doc p.N]`) so the guard can check the document as well as the page;
 - prompt-injection and PII middleware;
 - model router with per-request cost telemetry;
 - streaming UI.

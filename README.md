@@ -11,6 +11,10 @@
 
 A production-shaped PDF question-answering service that combines **lexical + vector retrieval**, **cross-encoder reranking**, strict **page-level citations**, and a grounding guard before responses reach the client.
 
+## Product UI
+
+A product-style interface is included at `app/static/index.html`. Run the FastAPI service and open `http://localhost:8000/` to use the interface against the real backend endpoints.
+
 ## Why this project exists
 
 A basic RAG demo can retrieve chunks and call an LLM. A production RAG system also needs to answer:

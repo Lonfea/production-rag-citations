@@ -23,39 +23,38 @@ This implementation addresses those concerns while remaining small enough to und
 
 ## Architecture
 
-```mermaid
+```text
 flowchart LR
-    PDF[PDF upload] --> EX[Page-aware extraction]
-    EX --> CH[Chunking]
-    CH --> FTS[(SQLite FTS5)]
-    CH --> VEC[(sqlite-vec)]
-    Q[Question] --> H[Hybrid retrieval]
-    FTS --> H
-    VEC --> H
-    H --> R[Cross-encoder reranker]
-    R --> G[LangGraph answer node]
-    G --> GG[Grounding + citation guard]
-    GG --> API[FastAPI response]
+PDF[PDF upload] --> EX[Page-aware extraction]
+EX --> CH[Chunking]
+CH --> FTS[(SQLite FTS5)]
+CH --> VEC[(sqlite-vec)]
+Q[Question] --> H[Hybrid retrieval]
+FTS --> H
+VEC --> H
+H --> R[Cross-encoder reranker]
+R --> G[LangGraph answer node]
+G --> GG[Grounding + citation guard]
+GG --> API[FastAPI response] 
 ```
 
 ## Request flow
 
-```mermaid
+```text
 sequenceDiagram
-    participant U as User
-    participant API as FastAPI
-    participant RET as Hybrid Retriever
-    participant RR as Cross-Encoder
-    participant LLM as LangGraph / LLM
-    participant G as Grounding Guard
-
-    U->>API: Ask question
-    API->>RET: lexical + semantic retrieval
-    RET->>RR: fused candidates
-    RR->>LLM: top evidence with page metadata
-    LLM->>G: answer + [p.N] citations
-    G-->>API: validate cited pages
-    API-->>U: grounded answer + structured sources
+participant U as User
+participant API as FastAPI
+participant RET as Hybrid Retriever
+participant RR as Cross-Encoder
+participant LLM as LangGraph / LLM
+participant G as Grounding Guard
+U->>API: Ask question
+API->>RET: lexical + semantic retrieval
+RET->>RR: fused candidates
+RR->>LLM: top evidence with page metadata
+LLM->>G: answer + [p.N] citations
+G-->>API: validate cited pages
+API-->>U: grounded answer + structured sources 
 ```
 
 ## What this demonstrates

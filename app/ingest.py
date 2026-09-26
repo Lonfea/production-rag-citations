@@ -2,7 +2,7 @@ import hashlib
 from pathlib import Path
 
 from pypdf import PdfReader
-from pypdf.errors import PdfReadError
+from pypdf.errors import DependencyError, PyPdfError
 
 from app.config import Settings
 from app.retrieval import Embedder, _serialize_f32, load_embedder
@@ -40,7 +40,7 @@ class PDFIngestor:
         try:
             reader = PdfReader(str(pdf_path))
             pages = [page.extract_text() or "" for page in reader.pages]
-        except (PdfReadError, ValueError, KeyError) as exc:
+        except (PyPdfError, DependencyError, ValueError, KeyError) as exc:
             raise ValueError(f"Could not read PDF: {exc}") from exc
         return [
             (page_number, chunk_index, chunk)

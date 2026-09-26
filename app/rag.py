@@ -26,10 +26,10 @@ Be concise and do not invent facts."""
 
 
 class RAGWorkflow:
-    def __init__(self, retriever: HybridRetriever, settings: Settings):
+    def __init__(self, retriever: HybridRetriever, settings: Settings, llm=None):
         self.retriever = retriever
         self.settings = settings
-        self.llm = self._build_llm()
+        self.llm = llm or self._build_llm()
         self.graph = self._build_graph()
 
     def _build_llm(self):

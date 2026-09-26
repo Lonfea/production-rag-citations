@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     retrieval_k: int = 20
     rerank_k: int = 6
 
+    max_upload_mb: int = 25
+
 
 @lru_cache
 def get_settings() -> Settings:

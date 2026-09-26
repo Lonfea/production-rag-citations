@@ -6,6 +6,9 @@
 ![LangGraph](https://img.shields.io/badge/Orchestration-LangGraph-black)
 ![SQLite](https://img.shields.io/badge/Search-SQLite%20FTS5%20%2B%20sqlite--vec-07405E)
 
+
+<p align="center"><img src="docs/architecture.svg" alt="production-rag-citations architecture" width="100%"></p>
+
 A production-shaped PDF question-answering service that combines **lexical + vector retrieval**, **cross-encoder reranking**, strict **page-level citations**, and a grounding guard before responses reach the client.
 
 ## Why this project exists

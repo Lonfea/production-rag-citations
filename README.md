@@ -1,5 +1,11 @@
 # Production RAG with Page Citations
 
+[![CI](https://github.com/Lonfea/production-rag-citations/actions/workflows/ci.yml/badge.svg)](https://github.com/Lonfea/production-rag-citations/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
+![FastAPI](https://img.shields.io/badge/API-FastAPI-009688)
+![LangGraph](https://img.shields.io/badge/Orchestration-LangGraph-black)
+![SQLite](https://img.shields.io/badge/Search-SQLite%20FTS5%20%2B%20sqlite--vec-07405E)
+
 A production-shaped PDF question-answering service that combines **lexical + vector retrieval**, **cross-encoder reranking**, strict **page-level citations**, and a grounding guard before responses reach the client.
 
 ## Why this project exists
@@ -31,6 +37,30 @@ flowchart LR
     G --> GG[Grounding + citation guard]
     GG --> API[FastAPI response]
 ```
+
+## Request flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant API as FastAPI
+    participant RET as Hybrid Retriever
+    participant RR as Cross-Encoder
+    participant LLM as LangGraph / LLM
+    participant G as Grounding Guard
+
+    U->>API: Ask question
+    API->>RET: lexical + semantic retrieval
+    RET->>RR: fused candidates
+    RR->>LLM: top evidence with page metadata
+    LLM->>G: answer + [p.N] citations
+    G-->>API: validate cited pages
+    API-->>U: grounded answer + structured sources
+```
+
+## What this demonstrates
+
+This repository is designed to demonstrate more than a chatbot: **retrieval architecture, provenance preservation, second-stage ranking, explicit grounding constraints, API design, deterministic testing, local development and containerization.**
 
 ## Stack
 
@@ -72,7 +102,8 @@ The API then returns the answer plus structured source metadata.
 ## Run locally
 
 ```bash
-cd ai-engineering-lab/production-rag
+git clone https://github.com/Lonfea/production-rag-citations.git
+cd production-rag-citations
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
